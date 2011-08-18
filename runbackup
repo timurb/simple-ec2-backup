@@ -1,0 +1,36 @@
+#!/bin/sh
+
+OUR_PATH=$(dirname $0)
+LIBSHELL_PATH=$OUR_PATH/libshell
+
+. $LIBSHELL_PATH/shell-config
+. $LIBSHELL_PATH/shell-error
+
+CONFIG=$OUR_PATH/ec2backup.conf 
+
+DESCRIPTION=$(shell_config_get $CONFIG DESCRIPTION)
+VOLUMES=$(shell_config_get $CONFIG VOLUMES)
+
+DESCRIPTION=${DESCRIPTION:-"Created by simple-ec2-backup"}
+NOW=$(date +%s)
+NOW_H=$(date --rfc-3339=seconds)
+
+[ -z "$VOLUMES" ] && fatal "No volumes to backup specified in $CONFIG"
+
+
+do_snapshot() {
+  local vol
+  local snap
+  local name
+
+  vol=$(echo $1 | awk -F: '{ print $1}')
+  name=$(echo $1 | awk -F: '{ print $2}')
+
+  snap=$(ec2addsnap -d "$DESCRIPTION" "$vol" | awk '{print $2}')
+  echo $snap
+  ec2addtag --hide-tags $snap -t "BackupID=${NOW}" -t "BackupDate=${NOW_H}" -t "BackupInstance=$name" > /dev/null
+}
+
+for volume in $VOLUMES; do
+  do_snapshot $volume &
+done
