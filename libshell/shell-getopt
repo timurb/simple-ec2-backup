@@ -236,7 +236,7 @@ getsubopt() {
 		return $?
 }
 
-. shell-version
+. $(dirname $0)/libshell/shell-version
 
 GETOPT_POSIXLY_CORRECT=
 
