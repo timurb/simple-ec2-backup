@@ -1,0 +1,50 @@
+#!/bin/sh
+
+OUR_PATH=$(dirname $0)
+LIBSHELL_PATH="$OUR_PATH/libshell"
+
+#       libshell by Alexey Gladkov is used here
+#       for more info see http://git.altlinux.org/gears/l/libshell.git
+. "$LIBSHELL_PATH/shell-error"
+
+setup_snaplist(){
+  which ec2dsnap > /dev/null || fatal "Unable to run: could not find 'ec2dsnap' command"
+
+  SNAPLIST=$(mktemp)
+
+  trap teardown 0
+  trap "exit 2" 1 2 3 15
+
+  ec2dsnap > $SNAPLIST
+}
+
+teardown() {
+  rm -f $SNAPLIST
+}
+
+snapshots_list()
+{
+	[ -z "$SNAPLIST" ] && fatal "run setup_snaplist first"
+	cat $SNAPLIST
+}
+
+snapshots_by_id()
+{
+	[ -z "$SNAPLIST" ] && fatal "run setup_snaplist first"
+	[ -z "$1" ] && fatal "Usage: snapshots_by_id snapshot_id"
+	cat $SNAPLIST | grep $1 | awk '{print $3}'
+}
+
+snapshots_date()
+{
+	[ -z "$SNAPLIST" ] && fatal "run setup_snaplist first"
+	[ -z "$1" ] && fatal "Usage: snapshots_date snapshot_id"
+	cat $SNAPLIST | grep $1 | grep BackupDate | awk '{print $5,$6}'
+}
+
+snapshots_volume()
+{
+	[ -z "$SNAPLIST" ] && fatal "run setup_snaplist first"
+	[ -z "$1" ] && fatal "Usage: snapshots_volume snapshot_id"
+	cat $SNAPLIST | grep $1 | grep VolumeID | awk '{print $5}'
+}

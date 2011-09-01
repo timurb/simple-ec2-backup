@@ -6,21 +6,13 @@ LIBSHELL_PATH="$OUR_PATH/libshell"
 #       libshell by Alexey Gladkov is used here
 #       for more info see http://git.altlinux.org/gears/l/libshell.git
 . "$LIBSHELL_PATH/shell-error"
-[ -z "$1" ] && fatal "No backup ID specified"
 
+[ -z "$1" ] && fatal "No backup ID specified"
 id=$1
 
-SNAPLIST=$(mktemp)
+. $OUR_PATH/backup_functions
+setup_snaplist
 
-teardown() {
- rm -f $SNAPLIST
-}
-
-trap teardown 0
-trap "exit 2" 1 2 3 15
-
-ec2dsnap > $SNAPLIST
-
-for snap in $(cat $SNAPLIST | grep $id | awk '{print $3}'); do
-  cat $SNAPLIST | grep $snap
+for snap in $(snapshots_by_id $id); do
+  snapshots_list | grep $snap
 done
