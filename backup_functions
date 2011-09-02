@@ -1,11 +1,14 @@
 #!/bin/sh
 
-OUR_PATH=$(dirname $0)
-LIBSHELL_PATH="$OUR_PATH/libshell"
+if [ -z "${__included_backup_functions-}" ]; then
+__included_backup_functions=1
+
+__OUR_PATH=$(dirname $0)
+__LIBSHELL_PATH="$OUR_PATH/libshell"
 
 #       libshell by Alexey Gladkov is used here
 #       for more info see http://git.altlinux.org/gears/l/libshell.git
-. "$LIBSHELL_PATH/shell-error"
+. "$__LIBSHELL_PATH/shell-error"
 
 setup_snaplist(){
   which ec2dsnap > /dev/null || fatal "Unable to run: could not find 'ec2dsnap' command"
@@ -48,3 +51,5 @@ snapshots_volume()
 	[ -z "$1" ] && fatal "Usage: snapshots_volume snapshot_id"
 	cat $SNAPLIST | grep $1 | grep VolumeID | awk '{print $5}'
 }
+
+fi # __included_backup_functions
