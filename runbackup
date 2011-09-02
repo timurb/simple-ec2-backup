@@ -48,10 +48,10 @@ do_snapshot() {
   info=$(echo $1 | awk -F: '{ print $3}')
 
   snap=$(ec2addsnap -d "$DESCRIPTION" "$volume" | awk '{print $2}')
-  echo $snap
   ec2addtag --hide-tags $snap -t "BackupID=${NOW}" -t "BackupDate=${NOW_H}" -t "BackupInfo=$info" -t "VolumeID=$volid" > /dev/null
 }
 
+echo $NOW
 for volume in $VOLUMES; do
   do_snapshot $volume &
 done
